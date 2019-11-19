@@ -16,8 +16,5 @@ let package = Package(
         .target(
             name: "ChangelogWizard",
             dependencies: []),
-        .testTarget(
-            name: "ChangelogWizardTests",
-            dependencies: ["ChangelogWizard"]),
     ]
 )
