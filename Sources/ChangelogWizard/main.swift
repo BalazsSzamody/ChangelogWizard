@@ -54,6 +54,7 @@ class Main {
             print(body)
         } catch {
             print(error)
+            exit 1
         }
     }
     
