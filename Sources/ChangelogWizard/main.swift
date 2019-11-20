@@ -17,7 +17,7 @@ class Main {
     
     func test() {
         do {
-            try "Hello".prependToFile(getFileName())
+            fatalError("Forced")
         } catch {
             print(error)
         }
@@ -54,7 +54,7 @@ class Main {
             print(body)
         } catch {
             print(error)
-            exit 1
+            exit(1)
         }
     }
     
