@@ -16,7 +16,7 @@ enum GitCommands {
         case .getLastTag:
             return "git describe --tags --abbrev=0"
         case .getCommits(let range):
-            return "git log --pretty=format:\"%h - %an, %ar : %s\"" + (range != nil ? " \(range!)" : "")
+            return "git log origin/develop --pretty=format:\"%h - %an, %ar : %s\"" + (range != nil ? " \(range!)" : "")
         }
     }
     
