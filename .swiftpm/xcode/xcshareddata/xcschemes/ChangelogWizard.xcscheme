@@ -76,12 +76,12 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "echo"
+            argument = "--test"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "Hello"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

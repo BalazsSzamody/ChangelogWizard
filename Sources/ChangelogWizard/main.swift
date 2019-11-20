@@ -17,7 +17,8 @@ class Main {
     
     func test() {
         do {
-            fatalError("Forced")
+            let body = getBody(version: "# v1.1.1", features: ["- Test1", "- Test 2"], bugs: ["- Test1", "- Test 2"])
+            print(body)
         } catch {
             print(error)
         }
@@ -26,9 +27,6 @@ class Main {
     func run() {
         do {
             let version = try getVersion()
-            let featuresTitle = CommitType.feature.title
-            let bugsTitle = CommitType.bug.title
-            
             var commits = try getCommits()
             
             if !isUsingGitTag {
@@ -39,17 +37,8 @@ class Main {
             let features = commits.taggedCommits(.feature)
             let bugs = commits.taggedCommits(.bug)
             
-            let body =
-            """
-            \(version)
-            \(featuresTitle)
-            \(features.joined(separator: "\n"))
+            let body = getBody(version: version, features: features, bugs: bugs)
             
-            \(bugsTitle)
-            \(bugs.joined(separator: "\n"))
-            
-            
-            """
             try body.prependToFile(getFileName())
             print(body)
         } catch {
@@ -124,6 +113,32 @@ class Main {
             .compactMap({ Arguments(rawValue: $0) })
             .first(where: { $0 == .tag })
         return tag?.fileName ?? Arguments.defaultFileName
+    }
+    
+    private func getBody(version: String, features: [String], bugs: [String]) -> String {
+        var body = version
+        if !features.isEmpty {
+            let featuresTitle = CommitType.feature.title
+            body += """
+                    
+                    \(featuresTitle)
+                    \(features.joined(separator: "\n"))
+                    
+                    """
+        }
+        
+        if !bugs.isEmpty {
+            let bugsTitle = CommitType.bug.title
+            body += """
+                    
+                    \(bugsTitle)
+                    \(bugs.joined(separator: "\n"))
+                    
+                    
+                    """
+        }
+        
+        return body
     }
 }
 
