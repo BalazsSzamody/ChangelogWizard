@@ -50,8 +50,8 @@ class Main {
             
             
             """
-            
             try body.prependToFile(getFileName())
+            print(body)
         } catch {
             print(error)
         }
