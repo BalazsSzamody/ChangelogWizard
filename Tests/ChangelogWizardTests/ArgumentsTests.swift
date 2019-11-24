@@ -93,4 +93,15 @@ class ArgumentsTests: XCTestCase {
         XCTAssertEqual(result.count, 2)
         XCTAssertEqual(result, ["param1", "param2"])
     }
+    
+    static var allTests = [
+        ("testParse", testParse),
+        ("testBlockTag", testBlockTag),
+        ("testTitles", testTitles),
+        ("testTagsWithoutTitles", testTagsWithoutTitles),
+        ("testGetParams_OneParam_Last", testGetParams_OneParam_Last),
+        ("testGetParams_OneParam_NotLast", testGetParams_OneParam_NotLast),
+        ("testGetParams_MoreParams_Last", testGetParams_MoreParams_Last),
+        ("testGetParams_MoreParams_NotFirst", testGetParams_MoreParams_NotFirst)
+    ]
 }
