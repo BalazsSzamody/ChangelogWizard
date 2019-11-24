@@ -10,7 +10,6 @@ import Foundation
 enum CommitType: CaseIterable {
     case feature
     case bug
-    case auto
     
     var tag: String {
         switch self {
@@ -18,8 +17,6 @@ enum CommitType: CaseIterable {
             return "[Feature]"
         case .bug:
             return "[FIX]"
-        case .auto:
-            return "[AUTO]"
         }
     }
     
@@ -29,8 +26,6 @@ enum CommitType: CaseIterable {
             return "## New Features"
         case .bug:
             return "## Improvements"
-        default:
-            return ""
         }
     }
     
@@ -47,17 +42,28 @@ enum CommitType: CaseIterable {
             .reversed()
     }
     
-    func commitsSinceLast(from commits: [String]) -> [String] {
-        guard let index = commits
-            .firstIndex(where: { $0.contains(self.tag) }) else {
-                return commits
-        }
-        return Array(commits.prefix(upTo: index))
-    }
-    
     static func isUsingTags(_ commit: String) -> Bool {
         return allCases
             .map({ commit.contains($0.tag) })
             .reduce(false, { $0 || $1 })
+    }
+}
+
+extension String {
+    func commitsSinceLast(from commits: [String]) -> [String] {
+        guard let index = commits.firstIndex(where: { $0.lowercased().contains(self.lowercased()) }) else {
+            return commits
+        }
+        return Array(commits.prefix(upTo: index))
+    }
+}
+
+extension Array where Element == String {
+    func taggedCommits(_ commitType: CommitType) -> Self {
+        return commitType.taggedCommits(from: self)
+    }
+    
+    func commitsSinceLast(_ commitTag: String) -> Self {
+        return commitTag.commitsSinceLast(from: self)
     }
 }
