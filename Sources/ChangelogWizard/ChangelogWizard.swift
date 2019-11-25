@@ -95,7 +95,12 @@ public class ChangelogWizard {
         let commitDump = try gitService
             .getCommits(branch: branch, range: try getGitTagRange())
             .components(separatedBy: "\n")
-            .filter({ CommitType.isUsingTags($0) })
+            .filter({ $0.isUsingTags(
+                CommitType
+                    .allCases
+                    .map({ $0.tag })
+                )
+            })
             // Get Commit message only
             .map({ commit -> String in
                 return commit.components(separatedBy: ":")

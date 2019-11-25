@@ -15,9 +15,6 @@ class ChangelogWizardTests: XCTestCase {
     let gitService = MockGitService()
     
     func testMe() {
-        if false {
-            XCTFail()
-        }
     }
     
     static var allTests = [
