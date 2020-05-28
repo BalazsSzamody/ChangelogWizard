@@ -9,14 +9,24 @@ import Foundation
 
 enum GitCommands {
     case getLastTag
-    case getCommits(range: String?)
+    case getCommits(date: String?)
+    case getCommitDetails(commit: String?, format: String)
+    case getLastMergeDate(date: String)
     
     var command: String {
         switch self {
         case .getLastTag:
             return "git describe --tags --abbrev=0"
-        case .getCommits(let range):
-            return "git log origin/develop --pretty=format:\"%h - %an, %ar : %s\"" + (range != nil ? " \(range!)" : "")
+        case .getCommits(let date):
+            return "git log --pretty=oneline" + (date != nil ? " --after=\(date!)" : "")
+        case .getCommitDetails(let commit, let format):
+            return ["git show --pretty=\(format)", commit]
+            .compactMap({ $0 })
+            .joined(separator: " ")
+        case .getLastMergeDate(let date):
+            return """
+                    git log --after="\(date)" --pretty=oneline
+                    """
         }
     }
     

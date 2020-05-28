@@ -11,6 +11,7 @@ enum CustomError: Error {
     case never
     case versionError
     case buildError
+    case dateFormatError
     
     var localizedDescription: String {
         switch self {
@@ -20,6 +21,8 @@ enum CustomError: Error {
             return "Version Not Found"
         case .buildError:
             return "Build Not Found"
+        case .dateFormatError:
+            return "Commit date format error"
         }
     }
 }

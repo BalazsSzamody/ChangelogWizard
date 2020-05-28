@@ -7,17 +7,36 @@
 
 import Foundation
 
-enum Arguments: String {
-    case tag = "--tag"
-    
-    var fileName: String {
-        switch self {
-        case .tag:
-            return "changelog.md"
-        }
-    }
+enum Arguments: Equatable {
+    case verbose
+    case commit(String)
+    case test
     
     static var defaultFileName: String {
         return "changelog_staging.md"
+    }
+    
+    static var current: [Arguments] = []
+    
+    static func parse(_ args: [String]) {
+        current = args.compactMap({
+            let arg = $0.dropFrontDash()
+            switch arg {
+            case "verbose":
+                return .verbose
+            case "commit":
+                
+                guard let index = args.firstIndex(of: $0),
+                    args.count > index + 1 else {
+                    print("Commit hash not found")
+                    exit(1)
+                }
+                return .commit(args[index + 1])
+            case "test":
+                return .test
+            default:
+                return nil
+            }
+        })
     }
 }

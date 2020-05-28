@@ -21,4 +21,20 @@ extension String {
         
         try body.write(to: url, atomically: true, encoding: .utf8)
     }
+    
+    func nilIfEmpty() -> String? {
+        isEmpty ? nil : self
+    }
+    
+    func lines() -> [String] {
+        components(separatedBy: "\n")
+    }
+    
+    func dropFrontDash() -> String {
+        guard self.first == "-" else {
+            return self
+        }
+        return String(dropFirst(1))
+            .dropFrontDash()
+    }
 }
