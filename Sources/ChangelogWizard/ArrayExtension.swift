@@ -15,4 +15,13 @@ extension Array where Element == String {
     func commitsSinceLast(_ commitType: CommitType) -> Self {
         return commitType.commitsSinceLast(from: self)
     }
+    
+    func oldestDate() -> Element? {
+        sorted(by: {
+            let formatter = ISO8601DateFormatter()
+            return formatter.date(from: $0) ?? Date()
+                < formatter.date(from: $1) ?? Date()
+        })
+        .first
+    }
 }

@@ -11,9 +11,9 @@ class Main {
         self.fileManager = fileManager
     }
     
-    var isUsingGitTag: Bool {
-        return args.contains(Arguments.tag.rawValue)
-    }
+//    var isUsingGitTag: Bool {
+//        return true
+//    }
     
     func test() {
         do {
@@ -29,17 +29,10 @@ class Main {
             let version = try getVersion()
             var commits = try getCommits()
             
-            if !isUsingGitTag {
-                commits = commits
-                    .commitsSinceLast(.auto)
-            }
-            
             let features = commits.taggedCommits(.feature)
             let bugs = commits.taggedCommits(.bug)
             
             let body = getBody(version: version, features: features, bugs: bugs)
-            
-            try body.prependToFile(getFileName())
             print(body)
         } catch {
             print(error)
@@ -59,42 +52,88 @@ class Main {
         }
         version.append(v)
         
-        if !isUsingGitTag {
-            // Get Build from AGVTool
-            command = ["xcrun agvtool what-version"]
-            guard let build = try Process.shell(command)
-                .components(separatedBy: "\n")
-                .dropFirst()
-                .first?
-                .replacingOccurrences(of: " ", with: "") else {
-                    throw CustomError.buildError
-            }
-            version.append("(\(build))")
+        // Get Build from AGVTool
+        command = ["xcrun agvtool what-version"]
+        guard let build = try Process.shell(command)
+            .components(separatedBy: "\n")
+            .dropFirst()
+            .first?
+            .replacingOccurrences(of: " ", with: "") else {
+                throw CustomError.buildError
         }
+        version.append("(\(build))")
         
         return "# v\(version.joined())\n"
     }
     
     private func getCommits() throws -> [String] {
+        let commitDate: String?
+        if let commit: String = Arguments.current.compactMap({
+            guard case .commit(let commit) = $0 else {
+                return nil
+            }
+            return commit
+            }).first {
+            verbosePrint("Commit form Argument:", commit)
+            commitDate = try getCommitDate(commit)
+            verbosePrint("Commit Date:", commitDate ?? "Not found")
+        } else {
+            commitDate = try getParentCommitDate()
+        }
+        
         let commitDump = try GitCommands
-            .getCommits(range: try getRange())
+            .getCommits(date: commitDate)
             .output()
-            .components(separatedBy: "\n")
+            .lines()
+        
+        verbosePrint("CommitDump:", commitDump)
+        
+        let taggedCommits = commitDump
             .filter({ CommitType.isUsingTags($0) })
-            // Get Commit message only
+       verbosePrint(taggedCommits)
+        
+        let commitTitles = taggedCommits
             .map({ commit -> String in
-                return commit.components(separatedBy: ":")
+                return commit.components(separatedBy: " ")
                     .dropFirst()
-                    .joined(separator: ":")
+                    .joined(separator: " ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
             })
-        return commitDump
+        verbosePrint("Commit Titles", commitTitles)
+        
+        return commitTitles
+    }
+    
+    private func getParentCommitDate() throws -> String? {
+        let parents: [String] = try GitCommands
+             .getCommitDetails(commit: nil, format: "raw")
+             .output()
+             .lines()
+             .compactMap({
+                 guard $0.contains("parent") else {
+                     return nil
+                 }
+                 
+                 return $0.components(separatedBy: " ").last
+             })
+         verbosePrint("Parents:", parents)
+        let oldestCommitDate = try parents
+             .compactMap({
+                 try getCommitDate($0)
+             })
+             .oldestDate()
+         verbosePrint("Oldest Commit Date", oldestCommitDate ?? "")
+        return oldestCommitDate
+    }
+    
+    private func getCommitDate(_ commit: String) throws -> String? {
+        try GitCommands.getCommitDetails(commit: commit, format: "%cI")
+            .output()
+            .lines()
+            .first
     }
     
     private func getRange() throws -> String? {
-        guard isUsingGitTag else {
-            return nil
-        }
         let tag = try GitCommands
             .getLastTag
             .output()
@@ -106,13 +145,6 @@ class Main {
         }
         
         return "\(tag)..HEAD"
-    }
-    
-    private func getFileName() -> String {
-        let tag = args
-            .compactMap({ Arguments(rawValue: $0) })
-            .first(where: { $0 == .tag })
-        return tag?.fileName ?? Arguments.defaultFileName
     }
     
     private func getBody(version: String, features: [String], bugs: [String]) -> String {
@@ -142,10 +174,17 @@ class Main {
     }
 }
 
+func verbosePrint(_ subject: Any...) {
+    guard Arguments.current.contains(.verbose) else {
+        return
+    }
+    dump(subject)
+}
+
 //MARK: ------------   MAIN   ---------------
 let main = Main()
-
-guard !CommandLine.arguments.contains("--test") else {
+Arguments.parse(CommandLine.arguments)
+guard !Arguments.current.contains(.test) else {
     main.test()
     exit(0)
 }
