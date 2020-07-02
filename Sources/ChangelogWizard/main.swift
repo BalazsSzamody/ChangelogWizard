@@ -26,8 +26,11 @@ class Main {
     
     func run() {
         do {
-            let version = try getVersion()
-            var commits = try getCommits()
+            var version: String?
+            if !Arguments.current.contains(.noVersion) {
+                version = try getVersion()
+            }
+            let commits = try getCommits()
             
             let features = commits.taggedCommits(.feature)
             let bugs = commits.taggedCommits(.bug)
@@ -77,6 +80,9 @@ class Main {
             verbosePrint("Commit form Argument:", commit)
             commitDate = try getCommitDate(commit)
             verbosePrint("Commit Date:", commitDate ?? "Not found")
+        } else if Arguments.current.contains(.all) {
+            verbosePrint("Printing all commits")
+            commitDate = nil
         } else {
             commitDate = try getParentCommitDate()
         }
@@ -147,8 +153,8 @@ class Main {
         return "\(tag)..HEAD"
     }
     
-    private func getBody(version: String, features: [String], bugs: [String]) -> String {
-        var body = version
+    private func getBody(version: String?, features: [String], bugs: [String]) -> String {
+        var body = version ?? ""
         if !features.isEmpty {
             let featuresTitle = CommitType.feature.title
             body += """

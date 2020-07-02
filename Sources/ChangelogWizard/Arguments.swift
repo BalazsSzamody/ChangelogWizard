@@ -10,7 +10,9 @@ import Foundation
 enum Arguments: Equatable {
     case verbose
     case commit(String)
+    case noVersion
     case test
+    case all
     
     static var defaultFileName: String {
         return "changelog_staging.md"
@@ -34,6 +36,10 @@ enum Arguments: Equatable {
                 return .commit(args[index + 1])
             case "test":
                 return .test
+            case "no-version":
+                return .noVersion
+            case "all":
+                return .all
             default:
                 return nil
             }
