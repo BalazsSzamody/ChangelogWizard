@@ -7,13 +7,13 @@
 
 import Foundation
 
-enum CustomError: Error {
+enum CustomError: LocalizedError {
     case never
     case versionError
     case buildError
     case dateFormatError
     
-    var localizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case .never:
             return "Never gonna happen"

@@ -13,6 +13,7 @@ enum Arguments: Equatable {
     case noVersion
     case test
     case all
+    case android
     
     static var defaultFileName: String {
         return "changelog_staging.md"
@@ -40,6 +41,8 @@ enum Arguments: Equatable {
                 return .noVersion
             case "all":
                 return .all
+            case "android":
+                return .android
             default:
                 return nil
             }

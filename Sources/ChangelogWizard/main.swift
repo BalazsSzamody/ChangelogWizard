@@ -26,10 +26,7 @@ class Main {
     
     func run() {
         do {
-            var version: String?
-            if !Arguments.current.contains(.noVersion) {
-                version = try getVersion()
-            }
+            let version = try getVersion()
             let commits = try getCommits()
             
             let features = commits.taggedCommits(.feature)
@@ -39,34 +36,24 @@ class Main {
             print(body)
         } catch {
             print(error)
+            print(error.localizedDescription)
+            print("Run command with --verbose argument for more info")
             exit(1)
         }
     }
     
-    private func getVersion() throws -> String {
-        // Get Version from AGVTool
-        var command = ["xcrun agvtool what-marketing-version"]
-        var version: [String] = []
-        guard let v = try Process
-            .shell(command)
-            .components(separatedBy: "\"")
-            .dropFirst().first else {
-                throw CustomError.versionError
+    private func getVersion() throws -> String? {
+        guard !Arguments.current.contains(.noVersion) else {
+            return nil
         }
-        version.append(v)
+        let isAndroid = Arguments
+            .current
+            .contains(.android)
+        let versionStore: VersionStore = isAndroid ?
+            AndroidVersionStore() :
+            IOSVersionStore()
         
-        // Get Build from AGVTool
-        command = ["xcrun agvtool what-version"]
-        guard let build = try Process.shell(command)
-            .components(separatedBy: "\n")
-            .dropFirst()
-            .first?
-            .replacingOccurrences(of: " ", with: "") else {
-                throw CustomError.buildError
-        }
-        version.append("(\(build))")
-        
-        return "# v\(version.joined())\n"
+        return try versionStore.getVersion()
     }
     
     private func getCommits() throws -> [String] {
