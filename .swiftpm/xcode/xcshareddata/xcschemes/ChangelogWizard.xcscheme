@@ -85,8 +85,12 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--test"
+            argument = "--no-version"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--test"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "Hello"

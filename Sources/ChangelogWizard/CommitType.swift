@@ -11,6 +11,7 @@ enum CommitType: CaseIterable {
     case feature
     case bug
     case auto
+    case general
     
     var tag: String {
         switch self {
@@ -20,6 +21,8 @@ enum CommitType: CaseIterable {
             return "[FIX]"
         case .auto:
             return "[AUTO]"
+        case .general:
+            return ""
         }
     }
     
@@ -29,6 +32,8 @@ enum CommitType: CaseIterable {
             return "## New Features"
         case .bug:
             return "## Improvements"
+        case .general:
+            return "## Changelog"
         default:
             return ""
         }

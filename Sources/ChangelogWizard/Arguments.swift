@@ -14,6 +14,7 @@ enum Arguments: Equatable {
     case test
     case all
     case android
+    case jira(String)
     
     static var defaultFileName: String {
         return "changelog_staging.md"
@@ -43,6 +44,13 @@ enum Arguments: Equatable {
                 return .all
             case "android":
                 return .android
+            case "jira":
+                guard let index = args.firstIndex(of: $0),
+                    args.count > index + 1 else {
+                    print("Jira tickect prefix not found")
+                    exit(1)
+                }
+                return .jira(args[index + 1])
             default:
                 return nil
             }

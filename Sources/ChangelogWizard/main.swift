@@ -11,14 +11,9 @@ class Main {
         self.fileManager = fileManager
     }
     
-//    var isUsingGitTag: Bool {
-//        return true
-//    }
-    
     func test() {
         do {
-            let body = getBody(version: "# v1.1.1", features: ["- Test1", "- Test 2"], bugs: ["- Test1", "- Test 2"])
-            print(body)
+            print("test")
         } catch {
             print(error)
         }
@@ -27,12 +22,17 @@ class Main {
     func run() {
         do {
             let version = try getVersion()
-            let commits = try getCommits()
+            var commits = try getCommits()
+            if let jiraTag = Arguments.current.compactMap({ arg -> String? in
+                guard case let .jira(tag) = arg else {
+                    return nil
+                }
+                return tag
+            }).first {
+                commits = commits.filter({ $0.contains(jiraTag) })
+            }
             
-            let features = commits.taggedCommits(.feature)
-            let bugs = commits.taggedCommits(.bug)
-            
-            let body = getBody(version: version, features: features, bugs: bugs)
+            let body = getBody(version: version, commits: commits)
             print(body)
         } catch {
             print(error)
@@ -71,7 +71,12 @@ class Main {
             verbosePrint("Printing all commits")
             commitDate = nil
         } else {
-            commitDate = try getParentCommitDate()
+            do {
+                commitDate = try getParentCommitDate()
+            } catch {
+                print(error)
+                commitDate = nil
+            }
         }
         
         let commitDump = try GitCommands
@@ -81,11 +86,8 @@ class Main {
         
         verbosePrint("CommitDump:", commitDump)
         
-        let taggedCommits = commitDump
-            .filter({ CommitType.isUsingTags($0) })
-       verbosePrint(taggedCommits)
         
-        let commitTitles = taggedCommits
+        let commitTitles = commitDump
             .map({ commit -> String in
                 return commit.components(separatedBy: " ")
                     .dropFirst()
@@ -93,8 +95,11 @@ class Main {
                     .trimmingCharacters(in: .whitespacesAndNewlines)
             })
         verbosePrint("Commit Titles", commitTitles)
-        
-        return commitTitles
+        let mergeCommitsRemoved = commitTitles
+            .filter({ !$0.contains("Merge branch") })
+        let duplicatesRemoved = mergeCommitsRemoved.removingDuplicates()
+        verbosePrint("No Duplicates:", duplicatesRemoved)
+        return duplicatesRemoved
     }
     
     private func getParentCommitDate() throws -> String? {
@@ -140,8 +145,10 @@ class Main {
         return "\(tag)..HEAD"
     }
     
-    private func getBody(version: String?, features: [String], bugs: [String]) -> String {
+    private func getBody(version: String?, commits: [String]) -> String {
         var body = version ?? ""
+        let features = commits.taggedCommits(.feature)
+        let bugs = commits.taggedCommits(.bug)
         if !features.isEmpty {
             let featuresTitle = CommitType.feature.title
             body += """
@@ -159,6 +166,16 @@ class Main {
                     \(bugsTitle)
                     \(bugs.joined(separator: "\n"))
                     
+                    
+                    """
+        }
+        
+        if bugs.isEmpty && features.isEmpty {
+            let generalTitle = CommitType.general.title
+            body += """
+                    
+                    \(generalTitle)
+                    \(commits.joined(separator: "\n"))
                     
                     """
         }
